@@ -1,0 +1,55 @@
+#########UserDetails############################
+Name:			Thomas Miller
+Uni Reg:		110167011
+ZOS Username:	SHE0022
+
+Added the lines which were requested in the assighment. Also installed
+the CISI resources in the wsbind file.
+The Refund buttonis fully wokring, was account 11111111 sort 123456
+#########Part1##################################
+
+//SDFHMOBI JCLLIB ORDER=CICSMOB.V1R0.SDFHMOBI
+//LS2VREFU EXEC DFHLS2JS,
+//           JAVADIR='java/J7.1_64',
+//           TMPFILE='SHE0022.VREFU',
+//           USSDIR='cicsts.v5r1',
+//           PATHPREF=''
+//INPUT.SYSUT1 DD *
+LANG=CPP
+MAPPING-LEVEL=3.0
+STRUCTURE=(voucher_refund_request,voucher_refund_response)
+WSBIND=/var/lib/cics/CICSZ032/pipelines/wsdir/REFU0022.wsbind
+PGMNAME=ZBVREFUN
+PGMINT=COMMAREA
+PDSLIB=SHE0022.ZEUSBANK.CNTL
+REQMEM=ZBVREFUN
+RESPMEM=ZBVREFUN
+URI=zeusbank/she0022/voucher_refund
+LOGFILE=/U/SHE0022/mylogfile.LOG
+JSON-SCHEMA-REQUEST=/U/SHE0022/REQUEST.JSON
+JSON-SCHEMA-RESPONSE=/U/SHE0022/RESPONSE.JSON
+/*
+
+
+I Have changed the SHENNNN to my name and have change the end terminator though
+the SQL tool in Z/OS.
+The remove is fully working with account 11111111 sort 123456
+###########Part2##################################
+
+CREATE PROCEDURE ZBVREMOVE_SHE0022(                                     00010001
+    IN T VARCHAR(16),                                                   00020000
+    IN S INTEGER,                                                       00030000
+    IN A INTEGER)                                                       00040000
+LANGUAGE SQL                                                            00041000
+BEGIN                                                                   00042000
+  DECLARE RC INTEGER;                                                   00043000
+  DELETE FROM BEATTIE.VOUCHERS                                          00050000
+    WHERE TOKENID = T AND SORTCODE = S AND ACCTNUM = A                  00060000
+          AND REDEEM_TS IS NOT NULL;                                    00070000
+  GET DIAGNOSTICS RC = ROW_COUNT;                                       00070100
+  IF RC <> 1 THEN                                                       00070200
+    SIGNAL SQLSTATE 'ZB001' SET MESSAGE_TEXT = 'VOUCHER NOT FOUND';     00070300
+  END IF;                                                               00070400
+END#                                                                    00071000
+                                                                        00080000
+GRANT EXECUTE ON PROCEDURE ZBVREMOVE_SHE0022 TO PUBLIC#                 00090001
